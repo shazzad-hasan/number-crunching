@@ -17,32 +17,32 @@ sys     1m0.196s
 
 Runtime for coda number_crunching_loop.cu program:
 N = 1000
-real    0m0.377s
-user    0m0.039s
-sys     0m0.215s
+real    0m0.123s
+user    0m0.025s
+sys     0m0.056s
 
 N = 10000
-real    0m0.976s
-user    0m0.353s
-sys     0m0.543s
+real    0m0.869s
+user    0m0.213s
+sys     0m0.636s
 
 N = 100000
-real    1m11.189s
-user    0m5.494s
-sys     0m22.873s
+real    0m9.528s
+user    0m2.356s
+sys     0m7.146s
 
 Runtime for cuda number_crunching_task.cu program:
 N = 1000
-real    0m0.467s
-user    0m0.020s
-sys     0m0.264s
+real    0m0.101s
+user    0m0.038s
+sys     0m0.037s
 
 N = 10000
-real    0m1.025s
-user    0m0.307s
-sys     0m0.624s
+real    0m0.724s
+user    0m0.183s
+sys     0m0.523s
 
 N = 100000
-real    0m59.512s
-user    0m5.686s
-sys     0m21.208s
+real    0m10.668s
+user    0m2.138s
+sys     0m8.509s
