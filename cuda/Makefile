@@ -13,4 +13,4 @@ taskgpu:
 	$(NVCC) $(NVCCFLAGS) -o number_crunching_task number_crunching_task.cu
 
 clean:
-	rm -f number_crunching number_crunching_loop
+	rm -f number_crunching number_crunching_loop number_crunching_task

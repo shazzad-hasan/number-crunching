@@ -1,8 +1,8 @@
-#include <algorithm>
-#include <fstream>
 #include <iostream>
+#include <fstream>
 #include <iomanip>
 #include <cuda_runtime.h>
+
 
 __global__ void kernel_function_a(const double *A, const double *x, double *y, int N) {
     int idx = threadIdx.x + blockIdx.x * blockDim.x;
@@ -38,7 +38,6 @@ __global__ void kernel_function_d(const double *u, const double *v, double *resu
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int tid = threadIdx.x;
 
-    // Load data into shared memory
     double sum = 0;
     if (idx < N) {
         sum = u[idx] * v[idx];
@@ -47,7 +46,6 @@ __global__ void kernel_function_d(const double *u, const double *v, double *resu
 
     __syncthreads();
 
-    // Reduction within a block
     for (unsigned int s = blockDim.x / 2; s > 0; s >>= 1) {
         if (tid < s) {
             sdata[tid] += sdata[tid + s];
@@ -55,7 +53,6 @@ __global__ void kernel_function_d(const double *u, const double *v, double *resu
         __syncthreads();
     }
 
-    // Sum from each block is written back to result
     if (tid == 0) {
         atomicAdd(result, sdata[0]);
     }
@@ -63,12 +60,11 @@ __global__ void kernel_function_d(const double *u, const double *v, double *resu
 
 void init_datastructures(double *u, double *v, double *A, const int N) {
     for (unsigned int i = 0; i < N; i++) {
-        u[i] = static_cast<double>(i%2);
-        v[i] = static_cast<double>(i%4);
+        u[i] = static_cast<double>(i % 2);
+        v[i] = static_cast<double>(i % 4);
     }
-
     for (unsigned int i = 0; i < N * N; i++) {
-        A[i] = static_cast<double>(i%8);
+        A[i] = static_cast<double>(i % 8);
     }
 }
 
@@ -110,18 +106,17 @@ void print_results_to_file(const double s, const double *x, const double *y,
     File << "\n";
 }
 
-int main(int argc, char **argv) {
-    long long N;
 
-    if (argc == 2) {
-        N = std::stoi(argv[1]);
-    } else {
-        std::cout << "Error: Missing problem size N. Please provide N as "
-                    "commandline parameter. Usage example for N=10: "
-                    "./number_crunching 10"
-                << std::endl;
-        exit(0);
+int main(int argc, char **argv) {
+    if (argc != 2) {
+        std::cerr << "Error: Missing problem size N. Please provide N as a command-line parameter. "
+                    "Usage example for N=10: ./number_crunching_task 10" << std::endl;
+        return EXIT_FAILURE;
     }
+
+    const int N = std::stoi(argv[1]);
+
+    const int blockSize = 256;
 
     double *u = new double[N];
     double *v = new double[N];
@@ -130,9 +125,8 @@ int main(int argc, char **argv) {
     double *y = new double[N];
     double *z = new double[N];
     double *d_u, *d_v, *d_A, *d_x, *d_y, *d_z, *d_result;
-    double s;
+    double s = 0.0;
 
-    // Allocate memory on the device
     cudaMalloc(&d_u, N * sizeof(double));
     cudaMalloc(&d_v, N * sizeof(double));
     cudaMalloc(&d_A, N * N * sizeof(double));
@@ -148,19 +142,27 @@ int main(int argc, char **argv) {
     cudaMemcpy(d_u, u, N * sizeof(double), cudaMemcpyHostToDevice);
     cudaMemcpy(d_v, v, N * sizeof(double), cudaMemcpyHostToDevice);
     cudaMemcpy(d_A, A, N * N * sizeof(double), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_result, &s, sizeof(double), cudaMemcpyHostToDevice); 
 
-    // Execute kernels
-    int blockSize = 256;
-    int numBlocks = (N + blockSize - 1) / blockSize;
-    kernel_function_b<<<numBlocks, blockSize>>>(2.0, d_u, d_v, d_x, N);
-    kernel_function_a<<<numBlocks, blockSize>>>(d_A, d_x, d_y, N);
-    double zero = 0.0; 
-    cudaMemcpy(d_result, &zero, sizeof(double), cudaMemcpyHostToDevice);
-    kernel_function_d<<<numBlocks, blockSize, blockSize * sizeof(double)>>>(d_u, d_v, d_result, N);
-    cudaMemcpy(&s, d_result, sizeof(double), cudaMemcpyDeviceToHost); 
-    kernel_function_c<<<numBlocks, blockSize>>>(s, d_x, d_y, d_z, N);
+    // Prepare streams
+    cudaStream_t stream1, stream2, stream3, stream4;
+    cudaStreamCreate(&stream1);
+    cudaStreamCreate(&stream2);
+    cudaStreamCreate(&stream3);
+    cudaStreamCreate(&stream4);
 
-    cudaDeviceSynchronize();
+    // Launch kernels in their respective streams
+    kernel_function_b<<<(N + blockSize - 1) / blockSize, blockSize, 0, stream1>>>(2.0, d_u, d_v, d_x, N);
+    kernel_function_a<<<(N + blockSize - 1) / blockSize, blockSize, 0, stream2>>>(d_A, d_x, d_y, N);
+    int numBlocks = min((N + blockSize - 1) / blockSize, 1024);
+    kernel_function_d<<<numBlocks, blockSize, blockSize * sizeof(double), stream3>>>(d_u, d_v, d_result, N);
+    cudaStreamSynchronize(stream3);  
+
+    cudaMemcpyAsync(&s, d_result, sizeof(double), cudaMemcpyDeviceToHost, stream3);
+    cudaStreamSynchronize(stream3);  
+
+    kernel_function_c<<<(N + blockSize - 1) / blockSize, blockSize, 0, stream4>>>(s, d_x, d_y, d_z, N);
+    cudaStreamSynchronize(stream4); 
 
     // Copy results back to host
     cudaMemcpy(x, d_x, N * sizeof(double), cudaMemcpyDeviceToHost);
@@ -173,6 +175,7 @@ int main(int argc, char **argv) {
     std::cout << "For correctness checking, partial results have been written to "
                 "partial_results.out"
                 << std::endl;
+
 
     delete[] u; 
     delete[] v; 
@@ -187,6 +190,10 @@ int main(int argc, char **argv) {
     cudaFree(d_y); 
     cudaFree(d_z); 
     cudaFree(d_result);
+    cudaStreamDestroy(stream1); 
+    cudaStreamDestroy(stream2); 
+    cudaStreamDestroy(stream3); 
+    cudaStreamDestroy(stream4);
 
     return EXIT_SUCCESS;
 }
