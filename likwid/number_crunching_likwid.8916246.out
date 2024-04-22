@@ -1,0 +1,77 @@
+--------------------------------------------------------------------------------
+CPU name:	AMD EPYC 7702 64-Core Processor                
+CPU type:	AMD K17 (Zen2) architecture
+CPU clock:	2.00 GHz
+--------------------------------------------------------------------------------
+Profiling complete, results saved.
+--------------------------------------------------------------------------------
+Region function_a, Group 1: MEM_DP
++-------------------+------------+
+|    Region Info    | HWThread 0 |
++-------------------+------------+
+| RDTSC Runtime [s] |   0.093546 |
+|     call count    |          1 |
++-------------------+------------+
+
++---------------------------+---------+------------+
+|           Event           | Counter | HWThread 0 |
++---------------------------+---------+------------+
+|      ACTUAL_CPU_CLOCK     |  FIXC1  |  312786300 |
+|       MAX_CPU_CLOCK       |  FIXC2  |  187019500 |
+|    RETIRED_INSTRUCTIONS   |   PMC0  |  800159000 |
+|    CPU_CLOCKS_UNHALTED    |   PMC1  |  311555600 |
+| RETIRED_SSE_AVX_FLOPS_ALL |   PMC2  |  200000000 |
+|           MERGE           |   PMC3  |          0 |
+|       DRAM_CHANNEL_0      |   DFC0  |    6382403 |
+|       DRAM_CHANNEL_1      |   DFC1  |    6382550 |
++---------------------------+---------+------------+
+
++-----------------------------------+------------+
+|               Metric              | HWThread 0 |
++-----------------------------------+------------+
+|        Runtime (RDTSC) [s]        |     0.0935 |
+|        Runtime unhalted [s]       |     0.1567 |
+|            Clock [MHz]            |  3338.6509 |
+|                CPI                |     0.3894 |
+|            DP [MFLOP/s]           |  2137.9748 |
+|    Memory bandwidth [MBytes/s]    |  8733.1675 |
+|    Memory data volume [GBytes]    |     0.8170 |
+| Operational intensity [FLOP/Byte] |     0.2448 |
++-----------------------------------+------------+
+
+--------------------------------------------------------------------------------
+CPU name:	AMD EPYC 7702 64-Core Processor                
+CPU type:	AMD K17 (Zen2) architecture
+CPU clock:	2.00 GHz
+--------------------------------------------------------------------------------
+Profiling complete, results saved.
+--------------------------------------------------------------------------------
+Region function_a, Group 1: FLOPS_DP
++-------------------+------------+
+|    Region Info    | HWThread 0 |
++-------------------+------------+
+| RDTSC Runtime [s] |   0.093905 |
+|     call count    |          1 |
++-------------------+------------+
+
++---------------------------+---------+------------+
+|           Event           | Counter | HWThread 0 |
++---------------------------+---------+------------+
+|      ACTUAL_CPU_CLOCK     |  FIXC1  |  313844300 |
+|       MAX_CPU_CLOCK       |  FIXC2  |  187682100 |
+|    RETIRED_INSTRUCTIONS   |   PMC0  |  800157600 |
+|    CPU_CLOCKS_UNHALTED    |   PMC1  |  312696100 |
+| RETIRED_SSE_AVX_FLOPS_ALL |   PMC2  |  200000000 |
+|           MERGE           |   PMC3  |          0 |
++---------------------------+---------+------------+
+
++----------------------+------------+
+|        Metric        | HWThread 0 |
++----------------------+------------+
+|  Runtime (RDTSC) [s] |     0.0939 |
+| Runtime unhalted [s] |     0.1572 |
+|      Clock [MHz]     |  3338.1210 |
+|          CPI         |     0.3908 |
+|     DP [MFLOP/s]     |  2129.8168 |
++----------------------+------------+
+
